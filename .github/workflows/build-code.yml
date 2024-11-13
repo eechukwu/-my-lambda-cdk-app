@@ -19,7 +19,7 @@ jobs:
       - name: Set up Node.js
         uses: actions/setup-node@v3
         with:
-          node-version: '18'  # Specify the Node.js version you are using
+          node-version: '18'
           cache: "npm"
           cache-dependency-path: "package-lock.json"
 
@@ -32,23 +32,13 @@ jobs:
       - name: Install Dependencies
         run: |
           npm install
-          npm install -g aws-cdk  # Install AWS CDK globally
-          npm install -g pnpm     # Install pnpm globally
+          npm install -g aws-cdk
+          npm install -g pnpm
 
       - name: Test CDK
         working-directory: "."
         run: npm test
 
-      - name: Build Lambda (if using TypeScript)
+      - name: Build Lambda
         run: |
-          npm run build  # Ensure you have a 'build' script if using TypeScript
-
-      - name: Trigger Deploy Workflow
-        uses: peter-evans/workflow-dispatch@v1
-        with:
-          repository: ${{ github.repository }}
-          workflow: '.github/workflows/deploy-code.yml'  # Path to the deploy workflow
-          ref: 'refs/heads/main'  # Trigger the workflow on the main branch
-          inputs: |
-            tag: ${{ steps.gitversion.outputs.version_tag }}  # Pass the version tag
-            environment: "production"  # Pass the environment to deploy to
+          npm run build
