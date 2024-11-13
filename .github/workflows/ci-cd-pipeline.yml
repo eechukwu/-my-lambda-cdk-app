@@ -46,11 +46,11 @@ jobs:
         working-directory: "."
         run: npm test
 
-      - name: Publish Test Results
-        uses: EnricoMi/publish-unit-test-result-action@e780361cd1fc1b1a170624547b3ffda64787d365
-        if: always()
-        with:
-          files: /lib/junit.xml
+#      - name: Publish Test Results
+#        uses: EnricoMi/publish-unit-test-result-action@e780361cd1fc1b1a170624547b3ffda64787d365
+#        if: always()
+#        with:
+#          files: /lib/junit.xml
 
       - name: Build Lambda (if using TypeScript)
         run: |
