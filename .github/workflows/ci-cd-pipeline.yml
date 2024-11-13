@@ -42,7 +42,7 @@ jobs:
         run: pnpm install --frozen-lockfile && pnpm build:bundle
 
       - name: Test CDK
-        working-directory: "cdk/landing-zone"
+        working-directory: "lib"
         run: npm test
 
       - name: Publish Test Results
