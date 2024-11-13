@@ -20,11 +20,35 @@ jobs:
         uses: actions/setup-node@v3
         with:
           node-version: '18'  # Specify the Node.js version you are using
+          cache: "npm"
+          cache-dependency-path: "package-lock.json"
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build
+        run: npm run build
+
+      - name: Test
+        run: npm run test:ci:unit
 
       - name: Install Dependencies
         run: |
           npm install
           npm install -g aws-cdk  # Install AWS CDK globally
+      - name: Install CDK dependencies
+        working-directory: "cdk/landing-zone"
+        run: pnpm install --frozen-lockfile && pnpm build:bundle
+
+      - name: Test CDK
+        working-directory: "cdk/landing-zone"
+        run: npm test
+
+      - name: Publish Test Results
+        uses: EnricoMi/publish-unit-test-result-action@e780361cd1fc1b1a170624547b3ffda64787d365
+        if: always()
+        with:
+          files: cdk/landing-zone/junit.xml
 
       - name: Build Lambda (if using TypeScript)
         run: |
