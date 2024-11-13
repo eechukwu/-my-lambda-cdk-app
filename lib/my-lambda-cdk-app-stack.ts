@@ -1,16 +1,25 @@
+// lib/my-lambda-cdk-app-stack.ts
 import * as cdk from 'aws-cdk-lib';
 import { Construct } from 'constructs';
-// import * as sqs from 'aws-cdk-lib/aws-sqs';
+import { LambdaFunction } from '../modules/lambda';
+import { ApiGateway } from '../modules/api-gateway';
+import { LoadBalancer } from '../modules/load-balancer';
+import { VpcStack } from '../modules/vpc'; // Import VPC module
 
 export class MyLambdaCdkAppStack extends cdk.Stack {
   constructor(scope: Construct, id: string, props?: cdk.StackProps) {
     super(scope, id, props);
 
-    // The code that defines your stack goes here
+    // Create VPC
+    const vpcStack = new VpcStack(this, 'MyVpcStack');
 
-    // example resource
-    // const queue = new sqs.Queue(this, 'MyLambdaCdkAppQueue', {
-    //   visibilityTimeout: cdk.Duration.seconds(300)
-    // });
+    // Create the Lambda function
+    const lambdaFunction = new LambdaFunction(this, 'HelloLambda');
+
+    // Create the API Gateway
+    new ApiGateway(this, 'HelloApiGateway', lambdaFunction);
+
+    // (Optional) Add the Load Balancer
+    new LoadBalancer(this, 'MyLoadBalancer', lambdaFunction, vpcStack);
   }
 }

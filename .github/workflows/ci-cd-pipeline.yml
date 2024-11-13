@@ -1,0 +1,40 @@
+name: CI/CD Pipeline for Lambda with API Gateway and Load Balancer
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v3
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '14'  # Specify the Node.js version you are using
+
+      - name: Install Dependencies
+        run: |
+          npm install
+          npm install -g aws-cdk  # Install AWS CDK globally
+
+      - name: Build Lambda (if using TypeScript)
+        run: |
+          npm run build  # Ensure you have a 'build' script if using TypeScript
+
+      - name: Deploy with CDK
+        run: |
+          cdk bootstrap  # Initialize the AWS environment
+          cdk deploy --require-approval never  # Deploy the stack without manual approval
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          AWS_DEFAULT_REGION: 'us-east-1'
