@@ -46,8 +46,9 @@ jobs:
       - name: Trigger Deploy Workflow
         uses: peter-evans/workflow-dispatch@v1
         with:
+          repository: ${{ github.repository }}
           workflow: '.github/workflows/deploy-code.yml'  # Path to the deploy workflow
           ref: 'refs/heads/main'  # Trigger the workflow on the main branch
-          inputs:
+          inputs: |
             tag: ${{ steps.gitversion.outputs.version_tag }}  # Pass the version tag
             environment: "production"  # Pass the environment to deploy to
