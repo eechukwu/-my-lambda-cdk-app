@@ -2,14 +2,13 @@ name: Deploy Code
 
 on:
   workflow_run:
-    workflows: ["CI/CD Pipeline for Lambda with API Gateway and Load Balancer"]
+    workflows: ["CI/CD Pipeline for Lambda with API Gateway and Load Balancer"]  # Name of the build pipeline
     types:
-      - completed
+      - completed  # Trigger deployment when the build pipeline completes
 
 jobs:
   deploy:
     runs-on: ubuntu-latest
-    needs: build  # Ensure that the build job completed before this runs
 
     steps:
       - name: Checkout Code
@@ -19,8 +18,6 @@ jobs:
         uses: actions/setup-node@v3
         with:
           node-version: '18'  # Specify the Node.js version you are using
-          cache: "npm"
-          cache-dependency-path: "package-lock.json"
 
       - name: Install Dependencies
         run: |
