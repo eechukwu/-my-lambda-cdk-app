@@ -1,4 +1,4 @@
-name: AWS Deploy 1
+name: AWS Deploy
 
 on:
   workflow_call:
@@ -94,74 +94,4 @@ jobs:
           set +e           # Don't abort this step automatically on a nonzero code - wait for the exit call
           set -o pipefail  # Preserve cdk's failure exit codes when piping through tee
           timeout 900 pnpm run cdk deploy -c profile=${{ inputs.env }} \
-            --context lambdaVersionTag=${{ inputs.version }} --all --require-approval never --outputs-file ./output.json 2>&1 \
-            | tee cdk-deploy.out
-          exitcode=$?
-          if [ "$exitcode" == "124" ]; then
-            echo |tee -a cdk-deploy.out
-            echo "CDK Deploy executed for over 10 minutes and was automatically killed." |tee -a cdk-deploy.out
-            echo "However, AWS Cloudformation is likely still trying to create or update your stack." |tee -a cdk-deploy.out
-            echo "Please check the Cloudformation stack in AWS Console to learn why this has happened." |tee -a cdk-deploy.out
-          fi
-          exit $exitcode
-
-      - name: Upload CDK output
-        uses: actions/upload-artifact@v4
-        with:
-          name: output.json
-          path: cdk/landing-zone/output.json
-          retention-days: 1
-
-  PreviewTest:
-    name: Run tests against preview environment
-    uses: "./.github/workflows/env-tests.yml"
-    with:
-      env: ${{inputs.env}}
-      isLegacy: false
-    permissions:
-      contents: write
-      issues: read
-      checks: write
-      pull-requests: write
-      id-token: write
-    needs: StackDeploy
-
-  Promote:
-    name: "Promote ${{ inputs.env }}"
-    environment: ${{ inputs.oidcEnv }}
-    permissions:
-      contents: read
-      id-token: write
-      issues: write
-      pull-requests: write
-      checks: write
-    runs-on: [self-hosted, internal-dind]
-    env:
-      PR_NUMBER: ${{ github.event.number }}
-    defaults:
-      run:
-        working-directory: "."
-    needs:
-      - PreviewTest
-      - StackDeploy
-    if: always() && needs.StackDeploy.result == 'success'
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-        with:
-          ref: ${{ inputs.version }}
-
-      - uses: aws-actions/configure-aws-credentials@v4
-        with:
-          aws-region: eu-west-1
-          role-to-assume: "arn:aws:iam::${{ secrets.AWS_ACCOUNT_ID }}:role/landing-zone-oidc/ghe-${{ github.event.repository.name }}"
-          role-session-name: ${{ github.event.repository.name }}
-
-      - name: Download CDK output
-        uses: actions/download-artifact@v4
-        with:
-          name: output.json
-          path: .
-
-      - name: Run promote script
-        run: sh ./scripts/promote.sh ./output.json
+            --context lambdaVersionTag=${{ inputs.version }} --all

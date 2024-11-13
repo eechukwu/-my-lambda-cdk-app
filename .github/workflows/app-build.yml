@@ -11,47 +11,41 @@ jobs:
       run:
         working-directory: "."
     steps:
-      # Checkout code
       - name: Checkout code
         uses: actions/checkout@v4
 
-      # Set up Node.js environment
-      - name: Set up Node.js
+      - name: Set up Node.js (v18.x)
         uses: actions/setup-node@v4
         with:
           node-version: "18.x"
           cache: "npm"
           cache-dependency-path: "package-lock.json"
 
-      # Install project dependencies
-      - name: Install dependencies
+      - name: Install project dependencies
         run: npm ci
 
-      # Build Lambda function
-      - name: Build Lambda
+      - name: Build Lambda function
         run: npm run build  # Ensure you have a build script in your package.json
 
-      # Run unit tests for Lambda
       - name: Test Lambda (Unit tests)
         run: npm run test:ci:unit  # Ensure this is defined in your package.json
 
-      # Install pnpm for CDK dependencies
-      - name: Install pnpm
+      - name: Install pnpm for CDK dependencies
         uses: pnpm/action-setup@fe02b34f77f8bc703788d5817da081398fad5dd2
         with:
           version: 9
 
-      # Install CDK dependencies using pnpm
-      - name: Install CDK dependencies
-        working-directory: "lib"
-        run: pnpm install --frozen-lockfile && pnpm build:bundle
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 18.x
+          cache: "pnpm"
+          cache-dependency-path: "cdk/landing-zone/pnpm-lock.yaml"
+          always-auth: true
+          registry-url: https://${{ steps.arti-auth.outputs.audience }}/artifactory/api/npm/main-npm/
 
-      # Run CDK tests
-      - name: Test CDK
-        working-directory: "lib"
-        run: npm test
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm build:bundle
 
-      # Upload Lambda build artifacts
       - name: Upload Lambda build artifacts
         uses: actions/upload-artifact@v4
         with:
@@ -59,7 +53,6 @@ jobs:
           path: dist/
           retention-days: 1
 
-      # Upload test results
       - name: Upload test results
         uses: actions/upload-artifact@v4
         if: always()
