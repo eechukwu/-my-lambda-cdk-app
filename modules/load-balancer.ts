@@ -17,21 +17,24 @@ export class LoadBalancer extends Construct {
             internetFacing: true, // Make the Load Balancer accessible from the internet
         });
 
-        // Create a listener for the Load Balancer
+        // Create a listener for the Load Balancer on port 80 (HTTP)
         const listener = loadBalancer.addListener('Listener', {
             port: 80,
         });
 
         // Add Lambda as a target using LambdaTarget
         listener.addTargets('LambdaTarget', {
-            targets: [new elb_targets.LambdaTarget(lambdaFunction.lambdaFunction)], // Correct usage of LambdaTarget
+            targets: [new elb_targets.LambdaTarget(lambdaFunction.lambdaFunction)], // Attach Lambda function to the ALB
             healthCheck: {
-                path: '/',
-                interval: cdk.Duration.seconds(30),
+                path: '/', // Health check path
+                interval: cdk.Duration.seconds(30),  // Interval between health checks
+                timeout: cdk.Duration.seconds(5),    // Timeout for each health check (must be less than interval)
+                healthyThresholdCount: 2,            // Number of consecutive successful health checks required
+                unhealthyThresholdCount: 2,          // Number of consecutive failed health checks allowed before marking as unhealthy
             },
         });
 
-        // Output the Load Balancer DNS name
+        // Output the Load Balancer DNS name (URL) for access
         new cdk.CfnOutput(this, 'LoadBalancerDNS', {
             value: loadBalancer.loadBalancerDnsName,
             description: 'DNS Name of the Load Balancer',
