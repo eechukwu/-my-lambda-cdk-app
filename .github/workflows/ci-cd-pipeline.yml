@@ -49,7 +49,7 @@ jobs:
         uses: EnricoMi/publish-unit-test-result-action@e780361cd1fc1b1a170624547b3ffda64787d365
         if: always()
         with:
-          files: cdk/landing-zone/junit.xml
+          files: lib
 
       - name: Build Lambda (if using TypeScript)
         run: |
