@@ -38,7 +38,7 @@ jobs:
           npm install -g aws-cdk  # Install AWS CDK globally
 
       - name: Install CDK dependencies
-        working-directory: "cdk/landing-zone"
+        working-directory: "lib"
         run: pnpm install --frozen-lockfile && pnpm build:bundle
 
       - name: Test CDK
