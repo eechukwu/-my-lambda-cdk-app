@@ -9,7 +9,7 @@ export class LambdaFunction extends Construct {
         super(scope, id);
 
         this.lambdaFunction = new lambda.Function(this, 'HelloLambda', {
-            runtime: lambda.Runtime.NODEJS_14_X,
+            runtime: lambda.Runtime.NODEJS_18_X,
             handler: 'hello.handler',
             code: lambda.Code.fromAsset('lambda'), // Path to Lambda code
         });
