@@ -1,10 +1,16 @@
 name: Deploy Code
 
 on:
-  workflow_run:
-    workflows: ["CI/CD Pipeline for Lambda with API Gateway and Load Balancer"]  # Name of the build pipeline
-    types:
-      - completed  # Trigger deployment when the build pipeline completes
+  workflow_call:
+    inputs:
+      tag:
+        required: true
+        description: "The version tag to deploy"
+        type: string
+      environment:
+        required: true
+        description: "The environment to deploy to (e.g., production, staging)"
+        type: string
 
 jobs:
   deploy:
@@ -33,3 +39,5 @@ jobs:
           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           AWS_DEFAULT_REGION: 'eu-west-2'
+          VERSION_TAG: ${{ inputs.tag }}  # Use the tag passed from the caller workflow
+          ENVIRONMENT: ${{ inputs.environment }}  # Use the environment passed from the caller workflow

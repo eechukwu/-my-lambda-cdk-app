@@ -1,0 +1,59 @@
+name: Create Tag
+
+on:
+  workflow_call:
+    inputs:
+      changePath:
+        required: false
+        description: "Optional path to check for changes"
+        type: string
+      tagPrefix:
+        required: true
+        description: "Prefix for the tag"
+        type: string
+    outputs:
+      version:
+        description: "Version created"
+        value: ${{ jobs.CreateTag.outputs.version }}${{ jobs.CreateTag.outputs.suffix }}
+
+jobs:
+  CreateTag:
+    name: "Create Tag"
+    runs-on: [self-hosted, lz-internal]
+    defaults:
+      run:
+        working-directory: "."
+    outputs:
+      version: ${{ steps.gitversion.outputs.version }}
+      suffix: ${{ steps.suffix.outputs.Version_Suffix }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          fetch-tags: "true"
+
+      - name: Determine Version
+        id: gitversion
+        uses: paulhatch/semantic-version@d93d2fb8878daa052e74298ed8b131c25f5ee7d6
+        with:
+          bump_each_commit: true
+          change_path: "${{ inputs.changePath }}"
+          tag_prefix: "${{ inputs.tagPrefix }}"
+
+      - name: Set Alpha Version Suffix
+        id: suffix
+        if: github.ref != 'refs/heads/master' # Only set version suffix for non-master (e.g. PR) branches
+        run: echo "Version_Suffix=${{ format('-alpha{0}-{1}', github.run_number, github.head_ref) }}" >> $GITHUB_OUTPUT
+
+      - name: Create tag ${{ steps.gitversion.outputs.version_tag }}
+        if: ${{ github.event_name == 'push' && github.event.ref == 'refs/heads/master' }} # Only tag merge commits to master
+        uses: actions/github-script@v6
+        with:
+          script: |
+            github.rest.git.createRef({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              ref: 'refs/tags/${{ steps.gitversion.outputs.version_tag }}',
+              sha: context.sha
+            })

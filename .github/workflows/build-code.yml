@@ -3,7 +3,56 @@ name: CI/CD Pipeline for Lambda with API Gateway and Load Balancer
 on:
   push:
     branches:
+      - mainname: CI/CD Pipeline for Lambda with API Gateway and Load Balancer
+
+on:
+  push:
+    branches:
       - main
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v3
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '18'  # Specify the Node.js version you are using
+          cache: "npm"
+          cache-dependency-path: "package-lock.json"
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build
+        run: npm run build
+
+      - name: Install Dependencies
+        run: |
+          npm install
+          npm install -g aws-cdk  # Install AWS CDK globally
+          npm install -g pnpm     # Install pnpm globally
+
+      - name: Test CDK
+        working-directory: "."
+        run: npm test
+
+      - name: Build Lambda (if using TypeScript)
+        run: |
+          npm run build  # Ensure you have a 'build' script if using TypeScript
+
+      - name: Trigger Deploy Workflow
+        uses: ./.github/workflows/deploy-code.yml
+        with:
+          tag: ${{ steps.gitversion.outputs.version_tag }}  # Pass the version tag
+          environment: "production"  # Pass the environment to deploy to
   pull_request:
     branches:
       - main
