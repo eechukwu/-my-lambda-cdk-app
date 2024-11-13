@@ -38,9 +38,9 @@ jobs:
           npm install -g aws-cdk  # Install AWS CDK globally
           npm install -g pnpm     # Install pnpm globally
 
-      - name: Install CDK dependencies
-        working-directory: "lib"
-        run: pnpm install --frozen-lockfile && pnpm build:bundle
+#      - name: Install CDK dependencies
+#        working-directory: "lib"
+#        run: pnpm install --frozen-lockfile && pnpm build:bundle
 
       - name: Test CDK
         working-directory: "lib"
